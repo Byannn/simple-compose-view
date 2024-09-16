@@ -13,6 +13,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.simplecompose.ui.theme.BlueGrey
 import com.example.simplecompose.ui.theme.DarkerGreen
 import com.example.simplecompose.ui.theme.SimpleComposeTheme
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,6 +36,7 @@ class MainActivity : ComponentActivity() {
 fun MyScreen() {
     var text by remember { mutableStateOf("") }
     var inputText by remember { mutableStateOf("") }
+    var nim by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -45,14 +48,32 @@ fun MyScreen() {
         Text(text = text)
         Spacer(modifier = Modifier.height(16.dp))
 
+        // TextField untuk nama
         TextField(
             value = inputText,
             onValueChange = { inputText = it },
-            label = { Text("Enter text") },
+            label = { Text("Enter name") },
             modifier = Modifier
                 .width(240.dp)
                 .padding(8.dp),
             shape = MaterialTheme.shapes.medium
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // TextField untuk NIM
+        TextField(
+            value = nim,
+            onValueChange = {
+                if (it.all { char -> char.isDigit() }) { // Memastikan hanya angka yang bisa diinput
+                    nim = it
+                }
+            },
+            label = { Text("Enter NIM") },
+            modifier = Modifier
+                .width(240.dp)
+                .padding(8.dp),
+            shape = MaterialTheme.shapes.medium,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number) // Menampilkan keyboard numerik
         )
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -61,7 +82,7 @@ fun MyScreen() {
             modifier = Modifier.fillMaxWidth()
         ) {
             Button(
-                onClick = { text = inputText },
+                onClick = { text = "Name: $inputText\nNIM: $nim" },
                 modifier = Modifier
                     .width(100.dp)
                     .padding(end = 8.dp),
@@ -74,6 +95,7 @@ fun MyScreen() {
             Button(
                 onClick = {
                     inputText = ""
+                    nim = ""
                     text = ""
                 },
                 modifier = Modifier
