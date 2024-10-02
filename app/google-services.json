@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "698267678068",
+    "firebase_url": "https://simple-compose-view-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "simple-compose-view",
+    "storage_bucket": "simple-compose-view.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:698267678068:android:86bf1d4efe3dc3ed9ca821",
+        "android_client_info": {
+          "package_name": "com.example.simplecompose"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwkfdClOq8zG7fTGtUFj6QD39V_oF9or4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
