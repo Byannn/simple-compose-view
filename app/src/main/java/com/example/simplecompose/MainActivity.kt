@@ -10,7 +10,8 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBox
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,11 +19,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.simplecompose.ui.theme.SimpleComposeTheme
 import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import androidx.compose.ui.text.input.VisualTransformation
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,10 +65,10 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     fun MainScreen() {
-        var name by remember { mutableStateOf("") }
-        var nim by remember { mutableStateOf("") }
+        var email by remember { mutableStateOf("") }
+        var password by remember { mutableStateOf("") }
         var errorMessage by remember { mutableStateOf<String?>(null) }
-        val isFormValid = name.isNotBlank() && nim.isNotBlank()
+        val isFormValid = email.isNotBlank() && password.isNotBlank()
         val context = LocalContext.current
 
         Column(
@@ -76,26 +80,26 @@ class MainActivity : ComponentActivity() {
         ) {
             Spacer(modifier = Modifier.height(18.dp))
 
-            // TextField untuk Nama
+            // TextField for Email
             InputFieldWithIcon(
-                value = name,
-                onValueChange = { name = it },
-                label = "Masukkan Nama",
-                icon = Icons.Default.AccountBox,
+                value = email,
+                onValueChange = { email = it },
+                label = "Enter Email",
+                icon = Icons.Default.Email,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 modifier = Modifier.fillMaxWidth().padding(9.dp)
             )
 
             Spacer(modifier = Modifier.height(18.dp))
 
-            // TextField untuk NIM
+            // TextField for Password
             InputFieldWithIcon(
-                value = nim,
-                onValueChange = {
-                    if (it.all { char -> char.isDigit() }) nim = it
-                },
-                label = "Masukkan NIM",
-                icon = Icons.Default.AccountBox,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                value = password,
+                onValueChange = { password = it },
+                label = "Enter Password",
+                icon = Icons.Default.Lock,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth().padding(9.dp)
             )
 
@@ -106,23 +110,7 @@ class MainActivity : ComponentActivity() {
                     onClick = {
                         errorMessage = null // Reset error message
                         if (isFormValid) {
-                            if (name == "Abyan Rifqi Zainum Muttaqin" && nim == "225150201111033") {
-                                // Mengambil jadwal dari database
-                                getScheduleFromDatabase { schedules ->
-                                    Toast.makeText(
-                                        context,
-                                        "Login sukses!",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                    navigateToListActivity(context, schedules) // Kirim jadwal ke ListActivity
-                                }
-                            } else {
-                                Toast.makeText(
-                                    context,
-                                    "Nama atau NIM tidak valid!",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
+                            signInWithEmailAndPassword(context, email, password)
                         }
                     },
                     enabled = isFormValid,
@@ -130,15 +118,15 @@ class MainActivity : ComponentActivity() {
                         .width(110.dp)
                         .padding(end = 8.dp)
                 ) {
-                    Text("Submit")
+                    Text("Login")
                 }
 
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Button(
                     onClick = {
-                        name = ""
-                        nim = ""
+                        email = ""
+                        password = ""
                         errorMessage = null // Reset error message
                     },
                     modifier = Modifier.width(110.dp)
@@ -147,7 +135,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            // Menampilkan pesan error jika ada
+            // Show error message
             errorMessage?.let {
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
@@ -159,6 +147,22 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun signInWithEmailAndPassword(context: Context, email: String, password: String) {
+        val auth = Firebase.auth
+        auth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Toast.makeText(context, "Login successful!", Toast.LENGTH_SHORT).show()
+                    // Fetch schedules from database and navigate to ListActivity
+                    getScheduleFromDatabase { schedules ->
+                        navigateToListActivity(context, schedules)
+                    }
+                } else {
+                    Toast.makeText(context, "Login failed: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+    }
+
     @Composable
     fun InputFieldWithIcon(
         value: String,
@@ -166,7 +170,8 @@ class MainActivity : ComponentActivity() {
         label: String,
         icon: ImageVector,
         modifier: Modifier = Modifier,
-        keyboardOptions: KeyboardOptions = KeyboardOptions.Default
+        keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+        visualTransformation: VisualTransformation = VisualTransformation.None
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -182,14 +187,15 @@ class MainActivity : ComponentActivity() {
                 onValueChange = onValueChange,
                 label = { Text(label) },
                 modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = keyboardOptions
+                keyboardOptions = keyboardOptions,
+                visualTransformation = visualTransformation
             )
         }
     }
 
     private fun navigateToListActivity(context: Context, schedules: List<Schedule>) {
         val intent = Intent(context, ListActivity::class.java).apply {
-            putExtra("schedules", ArrayList(schedules)) // Mengirim jadwal ke ListActivity
+            putExtra("schedules", ArrayList(schedules)) // Send schedules to ListActivity
         }
         context.startActivity(intent)
     }
